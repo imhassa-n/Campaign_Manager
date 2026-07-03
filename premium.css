@@ -1,0 +1,214 @@
+/* ============================================
+   WebDex Premium Layout & Aesthetics
+   ============================================ */
+
+/* Advanced Grids */
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Glassmorphism & Premium Cards */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
+}
+
+.metric-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+    border-color: var(--teal-300);
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+}
+
+.metric-icon.teal { background: var(--teal-50); color: var(--teal-600); }
+.metric-icon.navy { background: #eef2f6; color: var(--navy-600); }
+.metric-icon.success { background: var(--success-light); color: var(--success); }
+.metric-icon.warning { background: var(--warning-light); color: var(--warning); }
+.metric-icon.danger { background: var(--danger-light); color: var(--danger); }
+
+.metric-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--navy-900);
+    line-height: 1.2;
+}
+
+/* Platform Pills (Campaigns Form) */
+.platform-pill-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.platform-pill {
+    background: white;
+    border: 1px solid var(--gray-300);
+    padding: 10px 18px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.platform-pill i {
+    font-size: 16px;
+}
+
+.platform-pill:hover {
+    background: var(--gray-50);
+    border-color: var(--teal-400);
+    transform: translateY(-2px);
+}
+
+.platform-pill.selected {
+    background: var(--navy-800);
+    border-color: var(--navy-800);
+    color: white;
+    box-shadow: 0 4px 12px rgba(10, 25, 47, 0.2);
+}
+
+.platform-pill.selected i {
+    color: var(--teal-400);
+}
+
+/* Table Animations & Enhancements */
+.premium-table tbody tr {
+    animation: fadeInRow 0.4s ease forwards;
+    opacity: 0;
+}
+
+.premium-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.premium-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.premium-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.premium-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.premium-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+.premium-table tbody tr:nth-child(n+6) { animation-delay: 0.3s; }
+
+@keyframes fadeInRow {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy-800);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title i {
+    color: var(--teal-500);
+}
+
+.alert-item {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.alert-item:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--gray-300);
+}
+
+.alert-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.alert-icon.danger { background: var(--danger-light); color: var(--danger); }
+.alert-icon.warning { background: var(--warning-light); color: var(--warning); }
+
+.alert-content h6 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy-800);
+    margin-bottom: 2px;
+}
+
+.alert-content p {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin: 0;
+}
