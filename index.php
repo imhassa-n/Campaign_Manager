@@ -1,3 +1,4 @@
 <?php
-echo "Campaign Manager Working";
+header("Location: login.php");
+exit();
 ?>
