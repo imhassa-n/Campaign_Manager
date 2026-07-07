@@ -19,9 +19,10 @@ if(isset($_POST['save']))
     $phone = $_POST['phone'];
     
     $image_name = '';
-    if(isset($_FILES['image']) && $_FILES['image']['name'] != '') {
-        $image_name = time() . '_' . $_FILES['image']['name'];
-        move_uploaded_file($_FILES['image']['tmp_name'], 'assets/clients/' . $image_name);
+    if(isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK && $_FILES['image']['size'] > 0) {
+        $image_data = file_get_contents($_FILES['image']['tmp_name']);
+        $image_type = $_FILES['image']['type'];
+        $image_name = 'data:' . $image_type . ';base64,' . base64_encode($image_data);
     }
 
     mysqli_query($conn,"
@@ -151,8 +152,10 @@ if(isset($_POST['save']))
                         <td style="font-weight: 600; color: var(--gray-500);">#<?php echo $sr++; ?></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <?php if(!empty($row['image']) && file_exists('assets/clients/'.$row['image'])) { ?>
-                                <img src="assets/clients/<?php echo $row['image']; ?>" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid white;">
+                                <?php if(!empty($row['image'])) { 
+                                    $img_src = (strpos($row['image'], 'data:image') === 0) ? $row['image'] : 'assets/clients/'.$row['image'];
+                                ?>
+                                <img src="<?php echo $img_src; ?>" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid white;">
                                 <?php } else { ?>
                                 <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-600), var(--navy-600)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid white;">
                                     <?php echo strtoupper(substr($row['name'], 0, 1)); ?>

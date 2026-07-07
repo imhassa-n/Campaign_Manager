@@ -27,9 +27,10 @@ if(isset($_POST['update']))
     $tag = $_POST['tag'];
     
     $image_query_part = "";
-    if(isset($_FILES['image']) && $_FILES['image']['name'] != '') {
-        $image_name = time() . '_' . $_FILES['image']['name'];
-        move_uploaded_file($_FILES['image']['tmp_name'], 'assets/clients/' . $image_name);
+    if(isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK && $_FILES['image']['size'] > 0) {
+        $image_data = file_get_contents($_FILES['image']['tmp_name']);
+        $image_type = $_FILES['image']['type'];
+        $image_name = 'data:' . $image_type . ';base64,' . base64_encode($image_data);
         $image_query_part = ", image='$image_name'";
     }
 
@@ -135,8 +136,10 @@ if(isset($_POST['update']))
                         <div class="form-section">
                             <label class="form-label">Upload Logo</label>
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <?php if(!empty($client['image']) && file_exists('assets/clients/'.$client['image'])) { ?>
-                                <img src="assets/clients/<?php echo $client['image']; ?>" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 2px solid white;">
+                                <?php if(!empty($client['image'])) { 
+                                    $img_src = (strpos($client['image'], 'data:image') === 0) ? $client['image'] : 'assets/clients/'.$client['image'];
+                                ?>
+                                <img src="<?php echo $img_src; ?>" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 2px solid white;">
                                 <?php } ?>
                                 <input type="file"
                                        name="image"
