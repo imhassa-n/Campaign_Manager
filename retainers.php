@@ -218,6 +218,7 @@ if(isset($_POST['save']))
                         <th>Package / Service</th>
                         <?php if(can('payments')): ?>
                         <th>Monthly Fee</th>
+                        <th>Received</th>
                         <?php endif; ?>
                         <th>Start Date</th>
                         <th>Next Billing Date</th>
@@ -238,6 +239,18 @@ if(isset($_POST['save']))
                     while($row = mysqli_fetch_assoc($result))
                     {
                         $budget = floatval($row['budget']);
+                        
+                        // Calculate received for current billing cycle
+                        $current_due = $row['payment_due_date'];
+                        if($current_due && $current_due != '0000-00-00') {
+                            $cycle_start = date('Y-m-d', strtotime('-1 month', strtotime($current_due)));
+                        } else {
+                            $cycle_start = $row['start_date'];
+                        }
+                        $received_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(amount),0) as total FROM payments WHERE service_id='".$row['id']."' AND payment_date >= '$cycle_start'"));
+                        $received = floatval($received_res['total']);
+                        $remaining = max(0, $budget - $received);
+                        $percent = ($budget > 0) ? min(100, round(($received / $budget) * 100)) : 0;
                         
                         $today = date('Y-m-d');
                         $next_billing_date = $row['payment_due_date'];
@@ -281,6 +294,20 @@ if(isset($_POST['save']))
                         </td>
                         <?php if(can('payments')): ?>
                         <td style="font-weight: 600; color: #16a34a;">Rs <?php echo number_format($budget); ?></td>
+                        <td>
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+                                <span style="color: <?php echo ($percent >= 100) ? '#16a34a' : '#1e293b'; ?>;">Rs <?php echo number_format($received); ?></span>
+                                <span style="color: #94a3b8;">/ <?php echo number_format($budget); ?></span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                <div style="width: <?php echo $percent; ?>%; height: 100%; background: <?php echo ($percent >= 100) ? '#16a34a' : (($percent >= 50) ? '#f59e0b' : '#ef4444'); ?>; border-radius: 3px; transition: width 0.3s ease;"></div>
+                            </div>
+                            <?php if($remaining > 0) { ?>
+                            <div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">Baqi: Rs <?php echo number_format($remaining); ?></div>
+                            <?php } else { ?>
+                            <div style="font-size: 10px; color: #16a34a; font-weight: 600; margin-top: 2px;"><i class="bi bi-check-circle-fill"></i> Full Paid</div>
+                            <?php } ?>
+                        </td>
                         <?php endif; ?>
                         <td style="font-weight: 500; color: var(--navy-600);">
                             <?php echo date('d M, Y', strtotime($row['start_date'])); ?>
@@ -304,9 +331,15 @@ if(isset($_POST['save']))
                             <div style="display: flex; gap: 6px; align-items: center;">
                                 
                                 <?php if(can('payments')): ?>
+                                <?php if($remaining > 0) { ?>
+                                <!-- Add Partial Payment Button -->
+                                <button type="button" class="action-btn" style="background: #0ea5e9; color: white; border-color: #0ea5e9;" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['client_name']); ?>', '<?php echo addslashes($row['service_name']); ?>', <?php echo $remaining; ?>)">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                                <?php } ?>
                                 <?php if($is_due || $is_upcoming) { ?>
-                                <!-- Mark Paid Button -->
-                                <a href="renew_retainer.php?id=<?php echo $row['id']; ?>" class="action-btn" style="background: #16a34a; color: white; border-color: #16a34a;" title="Mark Month as Paid & Renew" onclick="return confirm('Log payment of Rs <?php echo number_format($budget); ?> and push billing date to next month?')">
+                                <!-- Mark Full Paid Button -->
+                                <a href="renew_retainer.php?id=<?php echo $row['id']; ?>" class="action-btn" style="background: #16a34a; color: white; border-color: #16a34a;" title="Mark Full Paid & Renew" onclick="return confirm('Log FULL payment of Rs <?php echo number_format($budget); ?> and push billing date to next month?')">
                                     <i class="bi bi-check2-all"></i>
                                 </a>
                                 <?php } ?>
@@ -370,6 +403,40 @@ if(isset($_POST['save']))
 
 </div>
 
+<!-- Partial Payment Modal -->
+<div id="paymentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:16px; padding:28px; width:420px; max-width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); position:relative;">
+        <button onclick="closePaymentModal()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#94a3b8;">&times;</button>
+        <h3 style="margin:0 0 4px 0; font-size:18px; color:#0f172a;"><i class="bi bi-cash-stack" style="color:#0ea5e9;"></i> Add Payment</h3>
+        <p id="modalClientInfo" style="color:#64748b; font-size:13px; margin:0 0 20px 0;"></p>
+        <form method="POST" action="add_partial_payment.php">
+            <input type="hidden" name="service_id" id="modalServiceId">
+            <input type="hidden" name="save_partial" value="1">
+            <div style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Amount (Rs)</label>
+                <input type="number" name="amount" id="modalAmount" class="form-control" placeholder="Enter amount" required style="font-size:15px; font-weight:600;">
+                <div id="modalRemaining" style="font-size:11px; color:#64748b; margin-top:4px;"></div>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Payment Method</label>
+                <select name="payment_method" class="form-control form-select">
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="JazzCash">JazzCash</option>
+                    <option value="EasyPaisa">EasyPaisa</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Note (Optional)</label>
+                <input type="text" name="notes" class="form-control" placeholder="e.g. half payment, advance...">
+            </div>
+            <button type="submit" class="btn-brand" style="width:100%;"><i class="bi bi-check-circle-fill"></i> Save Payment</button>
+        </form>
+    </div>
+</div>
+
 <?php include 'footer.php'; ?>
 
 <script>
@@ -381,4 +448,21 @@ function filterTable() {
         row.style.display = text.includes(query) ? '' : 'none';
     });
 }
+
+function openPaymentModal(serviceId, clientName, serviceName, remaining) {
+    document.getElementById('modalServiceId').value = serviceId;
+    document.getElementById('modalClientInfo').textContent = clientName + ' — ' + serviceName;
+    document.getElementById('modalAmount').value = '';
+    document.getElementById('modalAmount').max = remaining;
+    document.getElementById('modalRemaining').textContent = 'Remaining: Rs ' + remaining.toLocaleString();
+    document.getElementById('paymentModal').style.display = 'flex';
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+}
+
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if(e.target === this) closePaymentModal();
+});
 </script>
