@@ -46,7 +46,22 @@ $budget = floatval($invoice['budget']);
 $total = $budget; // No GST for retainers and web projects
 
 $advance = floatval($invoice['advance_amount']);
-$remaining = max(0, $total - $advance);
+
+// Calculate total received from payments table for this service
+if($is_retainer) {
+    $current_due = $invoice['payment_due_date'];
+    if($current_due && $current_due != '0000-00-00') {
+        $cycle_start = date('Y-m-d', strtotime('-1 month', strtotime($current_due)));
+    } else {
+        $cycle_start = $invoice['start_date'];
+    }
+    $received_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(amount),0) as total FROM payments WHERE service_id='$id' AND payment_date >= '$cycle_start'"));
+    $total_received = floatval($received_res['total']);
+    $remaining = max(0, $total - $total_received);
+} else {
+    $total_received = $advance;
+    $remaining = max(0, $total - $advance);
+}
 
 ?>
 <!DOCTYPE html>
@@ -520,7 +535,20 @@ $remaining = max(0, $total - $advance);
         <!-- Totals Section -->
         <div class="totals-section">
             <div class="totals-box">
-                <?php if(!$is_retainer && $advance > 0): ?>
+                <?php if($is_retainer && $total_received > 0): ?>
+                <div class="total-row">
+                    <span class="total-label">Monthly Fee</span>
+                    <span class="total-value">Rs <?php echo number_format($total, 2); ?></span>
+                </div>
+                <div class="total-row">
+                    <span class="total-label" style="color: #059669;">Received</span>
+                    <span class="total-value" style="color: #059669;">- Rs <?php echo number_format($total_received, 2); ?></span>
+                </div>
+                <div class="total-row grand-total">
+                    <span class="total-label"><?php echo ($remaining > 0) ? 'Remaining Due' : 'Fully Paid'; ?></span>
+                    <span class="total-value">Rs <?php echo number_format($remaining, 2); ?></span>
+                </div>
+                <?php elseif(!$is_retainer && $advance > 0): ?>
                 <div class="total-row">
                     <span class="total-label">Project Budget</span>
                     <span class="total-value">Rs <?php echo number_format($total, 2); ?></span>

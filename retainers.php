@@ -303,7 +303,7 @@ if(isset($_POST['save']))
                                 <div style="width: <?php echo $percent; ?>%; height: 100%; background: <?php echo ($percent >= 100) ? '#16a34a' : (($percent >= 50) ? '#f59e0b' : '#ef4444'); ?>; border-radius: 3px; transition: width 0.3s ease;"></div>
                             </div>
                             <?php if($remaining > 0) { ?>
-                            <div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">Baqi: Rs <?php echo number_format($remaining); ?></div>
+                            <div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">Remaining: Rs <?php echo number_format($remaining); ?></div>
                             <?php } else { ?>
                             <div style="font-size: 10px; color: #16a34a; font-weight: 600; margin-top: 2px;"><i class="bi bi-check-circle-fill"></i> Full Paid</div>
                             <?php } ?>
@@ -354,7 +354,11 @@ if(isset($_POST['save']))
                                     }
                                     
                                     if(can('payments')) {
-                                        $msg = "Hello ".$row['client_name'].", your monthly fee of Rs ".number_format($budget)." for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
+                                        if($received > 0 && $remaining > 0) {
+                                            $msg = "Hello ".$row['client_name'].", your monthly fee for '".$row['service_name']."' is Rs ".number_format($budget).". We have received Rs ".number_format($received)." so far. The remaining amount of Rs ".number_format($remaining)." is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
+                                        } else {
+                                            $msg = "Hello ".$row['client_name'].", your monthly fee of Rs ".number_format($budget)." for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
+                                        }
                                     } else {
                                         $msg = "Hello ".$row['client_name'].", your monthly fee for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
                                     }
