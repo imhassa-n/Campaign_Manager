@@ -155,22 +155,13 @@ $activity_res = mysqli_query($conn, "SELECT * FROM client_activity_log WHERE cli
                 </div>
                 <div class="page-card-body">
                     <div style="display: flex; gap: 20px; align-items: center;">
-                        <?php 
-                        $has_img = false;
-                        $img_src = '';
-                        if(!empty($client['image'])) { 
-                            if(strpos($client['image'], 'data:image') === 0) {
-                                if(strlen($client['image']) > 255) {
-                                    $has_img = true;
-                                    $img_src = $client['image'];
-                                }
-                            } else if(file_exists('assets/clients/'.$client['image'])) {
-                                $has_img = true;
-                                $img_src = 'assets/clients/'.$client['image'];
-                            }
-                        }
-                        if($has_img) { ?>
-                        <img src="<?php echo $img_src; ?>" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 3px solid var(--gray-100);">
+                        <?php if(!empty($client['image'])) { 
+                            $img_src = (strpos($client['image'], 'data:image') === 0) ? $client['image'] : 'assets/clients/'.$client['image'];
+                        ?>
+                        <img src="<?php echo $img_src; ?>" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 3px solid var(--gray-100);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-600), var(--navy-600)); align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 32px; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 3px solid var(--gray-100); display: none;">
+                            <?php echo strtoupper(substr($client['name'], 0, 1)); ?>
+                        </div>
                         <?php } else { ?>
                         <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-600), var(--navy-600)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 32px; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 3px solid var(--gray-100);">
                             <?php echo strtoupper(substr($client['name'], 0, 1)); ?>
