@@ -39,7 +39,7 @@ if(isset($_POST['mark_skipped'])) {
     exit;
 }
 
-if(isset($_GET['reset_task']) && $_SESSION['role'] === 'Admin') {
+if(isset($_GET['reset_task']) && (strpos($_SESSION['role'], 'Admin') !== false || strpos($_SESSION['role'], 'Supervisor') !== false)) {
     $task_id = intval($_GET['reset_task']);
     mysqli_query($conn, "DELETE FROM daily_tasks WHERE id=$task_id");
     header("Location: digital_tasks.php");
@@ -85,7 +85,7 @@ $pending_today = $total_active - ($done_today + $skipped_today);
         </div>
     </div>
     <div class="topbar-right">
-        <?php if($_SESSION['role'] === 'Admin'): ?>
+        <?php if(strpos($_SESSION['role'], 'Admin') !== false || strpos($_SESSION['role'], 'Supervisor') !== false): ?>
         <a href="digital_clients.php" class="btn-brand-outline">
             <i class="bi bi-gear-fill"></i> Manage Clients
         </a>
@@ -214,7 +214,7 @@ $pending_today = $total_active - ($done_today + $skipped_today);
                                         <div style="color: var(--success); font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                                             <i class="bi bi-check-circle-fill" style="font-size: 16px;"></i> Today's work completed
                                         </div>
-                                        <?php if($_SESSION['role'] === 'Admin'): ?>
+                                        <?php if(strpos($_SESSION['role'], 'Admin') !== false || strpos($_SESSION['role'], 'Supervisor') !== false): ?>
                                             <a href="digital_tasks.php?reset_task=<?php echo $row['task_id']; ?>" class="btn btn-sm btn-outline-danger" style="font-size: 11px; padding: 2px 6px;" title="Admin Reset" onclick="return confirm('Reset this task for today?')"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
                                         <?php endif; ?>
                                     </div>
@@ -223,7 +223,7 @@ $pending_today = $total_active - ($done_today + $skipped_today);
                                         <div style="color: var(--gray-500); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                                             <i class="bi bi-skip-forward-fill" style="font-size: 16px;"></i> Skipped for today
                                         </div>
-                                        <?php if($_SESSION['role'] === 'Admin'): ?>
+                                        <?php if(strpos($_SESSION['role'], 'Admin') !== false || strpos($_SESSION['role'], 'Supervisor') !== false): ?>
                                             <a href="digital_tasks.php?reset_task=<?php echo $row['task_id']; ?>" class="btn btn-sm btn-outline-danger" style="font-size: 11px; padding: 2px 6px;" title="Admin Reset" onclick="return confirm('Reset this task for today?')"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
                                         <?php endif; ?>
                                     </div>
