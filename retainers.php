@@ -331,9 +331,19 @@ if(isset($_POST['save']))
                             <div style="display: flex; gap: 6px; align-items: center;">
                                 
                                 <?php if(can('payments')): ?>
-                                <?php if($remaining > 0) { ?>
+                                <?php if($remaining > 0) { 
+                                    // Fetch payment history for this service in current cycle
+                                    $hist_query = mysqli_query($conn, "SELECT * FROM payments WHERE service_id='".$row['id']."' AND payment_date >= '$cycle_start' ORDER BY payment_date DESC");
+                                    $history_html = '';
+                                    while($h = mysqli_fetch_assoc($hist_query)) {
+                                        $history_html .= '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#f8fafc; border-radius:8px; margin-bottom:6px;">';
+                                        $history_html .= '<div><span style="font-weight:600; color:#0f172a;">Rs '.number_format($h['amount']).'</span> <span style="font-size:11px; color:#94a3b8;">'.date('d M Y', strtotime($h['payment_date'])).'</span></div>';
+                                        $history_html .= '<a href="edit_payment.php?id='.$h['id'].'" class="action-btn edit" style="width:26px;height:26px;font-size:11px;" title="Edit"><i class="bi bi-pencil-fill"></i></a>';
+                                        $history_html .= '</div>';
+                                    }
+                                ?>
                                 <!-- Add Partial Payment Button -->
-                                <button type="button" class="action-btn" style="background: #0ea5e9; color: white; border-color: #0ea5e9;" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['client_name']); ?>', '<?php echo addslashes($row['service_name']); ?>', <?php echo $remaining; ?>)">
+                                <button type="button" class="action-btn" style="background: #0ea5e9; color: white; border-color: #0ea5e9;" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['client_name']); ?>', '<?php echo addslashes($row['service_name']); ?>', <?php echo $remaining; ?>, '<?php echo addslashes($history_html); ?>')">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                                 <?php } ?>
@@ -355,12 +365,12 @@ if(isset($_POST['save']))
                                     
                                     if(can('payments')) {
                                         if($received > 0 && $remaining > 0) {
-                                            $msg = "Hello ".$row['client_name'].", your monthly fee for '".$row['service_name']."' is Rs ".number_format($budget).". We have received Rs ".number_format($received)." so far. The remaining amount of Rs ".number_format($remaining)." is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
+                                            $msg = "Hello ".$row['client_name'].", your monthly fee for '".$row['service_name']."' is Rs ".number_format($budget).". We have received Rs ".number_format($received)." so far. The remaining amount of Rs ".number_format($remaining)." is due on ".date('d M Y', strtotime($next_billing_date)).". Please kindly process the payment.";
                                         } else {
-                                            $msg = "Hello ".$row['client_name'].", your monthly fee of Rs ".number_format($budget)." for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
+                                            $msg = "Hello ".$row['client_name'].", your monthly fee of Rs ".number_format($budget)." for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please kindly process the payment.";
                                         }
                                     } else {
-                                        $msg = "Hello ".$row['client_name'].", your monthly fee for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please arrange the payment.";
+                                        $msg = "Hello ".$row['client_name'].", your monthly fee for '".$row['service_name']."' is due on ".date('d M Y', strtotime($next_billing_date)).". Please kindly process the payment.";
                                     }
                                     
                                     $wa_link = "https://wa.me/".str_replace(['+',' ','-'], '', $phone)."?text=".urlencode($msg);
@@ -409,10 +419,17 @@ if(isset($_POST['save']))
 
 <!-- Partial Payment Modal -->
 <div id="paymentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:28px; width:420px; max-width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); position:relative;">
+    <div style="background:white; border-radius:16px; padding:28px; width:460px; max-width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); position:relative; max-height:90vh; overflow-y:auto;">
         <button onclick="closePaymentModal()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#94a3b8;">&times;</button>
         <h3 style="margin:0 0 4px 0; font-size:18px; color:#0f172a;"><i class="bi bi-cash-stack" style="color:#0ea5e9;"></i> Add Payment</h3>
-        <p id="modalClientInfo" style="color:#64748b; font-size:13px; margin:0 0 20px 0;"></p>
+        <p id="modalClientInfo" style="color:#64748b; font-size:13px; margin:0 0 16px 0;"></p>
+        
+        <!-- Payment History -->
+        <div id="modalHistory" style="display:none; margin-bottom:16px;">
+            <div style="font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;"><i class="bi bi-clock-history"></i> Previous Payments</div>
+            <div id="modalHistoryList"></div>
+        </div>
+
         <form method="POST" action="add_partial_payment.php">
             <input type="hidden" name="service_id" id="modalServiceId">
             <input type="hidden" name="save_partial" value="1">
@@ -453,12 +470,22 @@ function filterTable() {
     });
 }
 
-function openPaymentModal(serviceId, clientName, serviceName, remaining) {
+function openPaymentModal(serviceId, clientName, serviceName, remaining, historyHtml) {
     document.getElementById('modalServiceId').value = serviceId;
     document.getElementById('modalClientInfo').textContent = clientName + ' — ' + serviceName;
     document.getElementById('modalAmount').value = '';
     document.getElementById('modalAmount').max = remaining;
     document.getElementById('modalRemaining').textContent = 'Remaining: Rs ' + remaining.toLocaleString();
+    
+    var histSection = document.getElementById('modalHistory');
+    var histList = document.getElementById('modalHistoryList');
+    if(historyHtml && historyHtml.trim() !== '') {
+        histList.innerHTML = historyHtml;
+        histSection.style.display = 'block';
+    } else {
+        histSection.style.display = 'none';
+    }
+    
     document.getElementById('paymentModal').style.display = 'flex';
 }
 
