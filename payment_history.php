@@ -145,69 +145,67 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                     ?>
                     <tr data-method="<?php echo htmlspecialchars($method); ?>" data-month="<?php echo date('Y-m', strtotime($row['payment_date'])); ?>">
                         <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, var(--teal-500), var(--navy-600)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-600), var(--navy-600)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 11px; flex-shrink: 0;">
                                     <?php 
-                                        if(!empty($row['client_name'])) echo strtoupper(substr($row['client_name'], 0, 1)); 
-                                        elseif(!empty($row['custom_client_name'])) echo strtoupper(substr($row['custom_client_name'], 0, 1)); 
-                                        else echo 'G';
+                                        if(!empty($row['client_name'])) {
+                                            echo strtoupper(substr($row['client_name'], 0, 1)); 
+                                        } elseif(!empty($row['custom_client_name'])) {
+                                            echo strtoupper(substr($row['custom_client_name'], 0, 1)); 
+                                        } else {
+                                            echo 'G';
+                                        }
                                     ?>
                                 </div>
-                                <div>
-                                    <span style="font-weight: 700; color: var(--navy-800); font-size: 14px; display: block;">
-                                        <?php 
-                                            if(!empty($row['client_name'])) echo htmlspecialchars($row['client_name']);
-                                            elseif(!empty($row['custom_client_name'])) echo htmlspecialchars($row['custom_client_name']);
-                                            else echo 'Generic Payment';
-                                        ?>
-                                    </span>
-                                    <?php if(!empty($row['custom_client_name'])): ?>
-                                        <span style="font-size: 11px; background: var(--gray-100); color: var(--gray-600); padding: 2px 6px; border-radius: 4px; font-weight: 600;">Custom Client</span>
-                                    <?php endif; ?>
-                                </div>
+                                <span style="font-weight: 600;">
+                                    <?php 
+                                        if(!empty($row['client_name'])) {
+                                            echo $row['client_name'];
+                                        } elseif(!empty($row['custom_client_name'])) {
+                                            echo htmlspecialchars($row['custom_client_name']) . " <span style='font-size:10px; color:#aaa;'>(Custom)</span>";
+                                        } else {
+                                            echo 'Generic Payment';
+                                        }
+                                    ?>
+                                </span>
                             </div>
                         </td>
                         <td>
-                            <div style="font-weight: 700; color: var(--navy-700); font-size: 13px;">
+                            <div style="font-weight: 600; color: var(--navy-800);">
                             <?php 
-                            if($row['campaign_name']) echo '<i class="bi bi-megaphone" style="color:var(--teal-500);"></i> ' . htmlspecialchars($row['campaign_name']);
-                            elseif($row['service_name']) echo '<i class="bi bi-laptop" style="color:var(--teal-500);"></i> ' . htmlspecialchars($row['service_name']);
-                            else echo '<i class="bi bi-box" style="color:var(--gray-400);"></i> Direct Payment';
+                            if($row['campaign_name']) echo htmlspecialchars($row['campaign_name']) . " <span style='font-size:10px; color:#aaa;'>(Campaign)</span>";
+                            elseif($row['service_name']) echo htmlspecialchars($row['service_name']) . " <span style='font-size:10px; color:#aaa;'>(Service)</span>";
+                            else echo "Direct Payment";
                             ?>
                             </div>
                             <?php if(!empty($row['notes'])): ?>
-                            <div style="font-size: 11px; color: var(--gray-500); margin-top: 4px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border-left: 2px solid #cbd5e1; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?php echo htmlspecialchars($row['notes']); ?>">
+                            <div style="font-size: 11px; color: var(--gray-500); margin-top: 2px;">
                                 <?php echo htmlspecialchars($row['notes']); ?>
                             </div>
                             <?php endif; ?>
                         </td>
-                        <td>
-                            <div style="font-weight: 700; color: var(--navy-800); font-size: 13px;">
-                                <?php echo $row['payment_date'] ? date('d M, Y', strtotime($row['payment_date'])) : '-'; ?>
-                            </div>
-                            <div style="font-size: 10px; color: var(--gray-400); font-weight: 600; text-transform: uppercase;">
-                                <?php echo $row['payment_date'] ? date('l', strtotime($row['payment_date'])) : ''; ?>
-                            </div>
+                        <td style="font-weight: 500; color: var(--navy-600); font-size: 13px;">
+                            <?php echo $row['payment_date'] ? date('d M, Y', strtotime($row['payment_date'])) : '-'; ?>
                         </td>
                         <td>
-                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: <?php echo $m_color; ?>15; color: <?php echo $m_color; ?>; border: 1px solid <?php echo $m_color; ?>30;">
-                                <i class="bi <?php echo $m_icon; ?>"></i>
+                            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: <?php echo $m_color; ?>15; color: <?php echo $m_color; ?>;">
+                                <i class="bi <?php echo $m_icon; ?>" style="font-size: 10px;"></i>
                                 <?php echo $method; ?>
                             </span>
                         </td>
                         <td>
-                            <div style="font-weight: 800; color: var(--success); font-size: 15px;">
-                                <span style="font-size: 11px; color: var(--gray-400); font-weight: 600;">Rs</span> <?php echo number_format($row['amount']); ?>
-                            </div>
+                            <span style="font-weight: 700; color: var(--success);">
+                                Rs <?php echo number_format($row['amount']); ?>
+                            </span>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 8px;">
-                                <a class="btn-brand-outline" style="padding: 4px 8px; font-size: 12px;"
+                            <div style="display: flex; gap: 6px;">
+                                <a class="action-btn edit"
                                    href="edit_payment.php?id=<?php echo $row['id']; ?>"
                                    title="Edit">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
-                                <a class="btn-brand-outline" style="padding: 4px 8px; font-size: 12px; border-color: #fecaca; color: var(--danger);"
+                                <a class="action-btn delete"
                                    href="delete_payment.php?id=<?php echo $row['id']; ?>"
                                    title="Delete"
                                    onclick="return confirm('Are you sure you want to delete this payment?')">
