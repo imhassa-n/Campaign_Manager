@@ -81,7 +81,16 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
         <div class="page-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h2 style="margin: 0;"><i class="bi bi-clock-history"></i> Payment History</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="month" id="historyMonthFilter" class="form-control" style="width: auto; height: 36px; padding: 4px 10px; font-size: 13px;" onchange="filterTables()">
+                <select id="historyMonthFilter" class="form-control form-select" style="width: auto; height: 36px; padding: 4px 10px; font-size: 13px;" onchange="filterTables()">
+                    <option value="">All Months</option>
+                    <?php
+                    $months_query = mysqli_query($conn, "SELECT DISTINCT DATE_FORMAT(payment_date, '%Y-%m') as month_val, DATE_FORMAT(payment_date, '%b %Y') as month_label FROM payments ORDER BY payment_date DESC");
+                    while($m = mysqli_fetch_assoc($months_query)) {
+                        if(empty($m['month_val'])) continue;
+                        echo "<option value='".$m['month_val']."'>".$m['month_label']."</option>";
+                    }
+                    ?>
+                </select>
                 <select id="historyMethodFilter" class="form-control form-select" style="width: auto; height: 36px; padding: 4px 10px; font-size: 13px;" onchange="filterTables()">
                     <option value="">All Methods</option>
                     <option value="Cash">Cash</option>
