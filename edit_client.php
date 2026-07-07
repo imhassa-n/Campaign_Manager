@@ -133,7 +133,7 @@ if(isset($_POST['update']))
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-section">
-                            <label class="form-label">Profile Image</label>
+                            <label class="form-label">Upload Logo</label>
                             <div style="display: flex; gap: 12px; align-items: center;">
                                 <?php if(!empty($client['image']) && file_exists('assets/clients/'.$client['image'])) { ?>
                                 <img src="assets/clients/<?php echo $client['image']; ?>" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 2px solid white;">

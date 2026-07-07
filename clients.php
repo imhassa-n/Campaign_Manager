@@ -105,7 +105,7 @@ if(isset($_POST['save']))
                     </div>
                     <div class="col-md-6">
                         <div class="form-section">
-                            <label class="form-label">Profile Image (Optional)</label>
+                            <label class="form-label">Upload Logo (Optional)</label>
                             <input type="file"
                                    name="image"
                                    class="form-control"
