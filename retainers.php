@@ -353,7 +353,7 @@ if(isset($_POST['save']))
                                 <?php } ?>
                                 <?php if($is_due || $is_upcoming) { ?>
                                 <!-- Mark Full Paid Button -->
-                                <a href="renew_retainer.php?id=<?php echo $row['id']; ?>" class="action-btn" style="background: #16a34a; color: white; border-color: #16a34a;" title="Mark Full Paid & Renew" onclick="return confirm('Log FULL payment of Rs <?php echo number_format($budget); ?> and push billing date to next month?')">
+                                <a href="renew_retainer.php?id=<?php echo $row['id']; ?>" class="action-btn" style="background: #16a34a; color: white; border-color: #16a34a;" title="Mark Full Paid & Renew" onclick="return confirm('Log payment of Rs <?php echo number_format($remaining); ?> and push billing date to next month?')">
                                     <i class="bi bi-check2-all"></i>
                                 </a>
                                 <?php } ?>
