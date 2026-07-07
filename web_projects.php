@@ -12,6 +12,12 @@ include 'db.php';
 require_once 'auth.php';
 require_permission('web_projects');
 
+// Auto-add custom_client_name column to services if it doesn't exist
+$check_col = mysqli_query($conn, "SHOW COLUMNS FROM services LIKE 'custom_client_name'");
+if(mysqli_num_rows($check_col) == 0) {
+    mysqli_query($conn, "ALTER TABLE services ADD COLUMN custom_client_name VARCHAR(255) NULL AFTER client_id");
+}
+
 if(isset($_POST['save']))
 {
     $client_id = $_POST['client_id'];
@@ -31,10 +37,19 @@ if(isset($_POST['save']))
     $payment_due_date = $reminder_date_val;
     $reminder_date = !empty($reminder_date_val) ? "'".$reminder_date_val."'" : "NULL";
 
+    if ($client_id === 'custom') {
+        $client_id_val = 0;
+        $custom_client_name = $_POST['custom_client_name'];
+    } else {
+        $client_id_val = $client_id;
+        $custom_client_name = '';
+    }
+
     mysqli_query($conn,"
     INSERT INTO services
     (
     client_id,
+    custom_client_name,
     service_name,
     budget,
     status,
@@ -49,7 +64,8 @@ if(isset($_POST['save']))
     )
     VALUES
     (
-    '$client_id',
+    '$client_id_val',
+    '$custom_client_name',
     '$service_name',
     '$budget',
     '$status',
@@ -67,7 +83,7 @@ if(isset($_POST['save']))
     
     if($advance_amount > 0) {
         $payment_date = date("Y-m-d");
-        mysqli_query($conn, "INSERT INTO payments (client_id, service_id, amount, payment_date) VALUES ('$client_id', '$service_id', '$advance_amount', '$payment_date')");
+        mysqli_query($conn, "INSERT INTO payments (client_id, custom_client_name, service_id, amount, payment_date) VALUES ('$client_id_val', '$custom_client_name', '$service_id', '$advance_amount', '$payment_date')");
     }
 
     header("Location: web_projects.php");
@@ -112,8 +128,9 @@ if(isset($_POST['save']))
                     <div class="col-md-6">
                         <div class="form-section">
                             <label class="form-label">Select Client</label>
-                            <select name="client_id" class="form-control form-select" required>
+                            <select name="client_id" id="clientSelect" class="form-control form-select" required onchange="toggleCustomClient()">
                                 <option value="">Choose a client...</option>
+                                <option value="custom" style="font-weight: bold; color: var(--brand-color);">+ Custom Client</option>
                                 <?php
                                 $clients = mysqli_query($conn,"SELECT * FROM clients ORDER BY name ASC");
                                 while($client = mysqli_fetch_assoc($clients))
@@ -126,6 +143,7 @@ if(isset($_POST['save']))
                                 }
                                 ?>
                             </select>
+                            <input type="text" name="custom_client_name" id="customClientName" class="form-control mt-2" placeholder="Enter Custom Client Name" style="display: none;">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -258,15 +276,16 @@ if(isset($_POST['save']))
                         $advance = floatval($row['calculated_advance']);
                         $budget = floatval($row['budget']);
                         $remaining = $budget - $advance;
+                        $client_name = $row['client_name'] ?? $row['custom_client_name'] ?? 'Unknown';
                     ?>
                     <tr>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #0f172a); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 11px; flex-shrink: 0;">
-                                    <?php echo strtoupper(substr($row['client_name'], 0, 1)); ?>
+                                    <?php echo strtoupper(substr($client_name, 0, 1)); ?>
                                 </div>
                                 <div style="display: flex; flex-direction: column;">
-                                    <span style="font-weight: 500;"><?php echo $row['client_name']; ?></span>
+                                    <span style="font-weight: 500;"><?php echo $client_name; ?></span>
                                     <span style="font-size: 11px; color: var(--gray-500);">Added: <?php echo date('M Y', strtotime($row['start_date'])); ?></span>
                                 </div>
                             </div>
@@ -306,20 +325,21 @@ if(isset($_POST['save']))
                         <td>
                             <div style="display: flex; gap: 6px; align-items: center;">
                                 <?php if(can('payments') && $row['payment_status'] == 'Pending') { 
-                                    $phone = $row['client_phone'];
-                                    if(substr($phone, 0, 1) === '0') {
-                                        $phone = '+92' . substr($phone, 1);
-                                    } elseif (substr($phone, 0, 3) !== '+92') {
-                                        $phone = '+92' . ltrim($phone, '+');
-                                    }
-                                    
-                                    $msg = "Hello ".$row['client_name'].", your payment of Rs ".number_format($remaining)." for the '".$row['service_name']."' web project is due. Please clear it";
-                                    if($row['reminder_date']) {
-                                        $msg .= " by " . date('d M Y', strtotime($row['reminder_date']));
-                                    }
-                                    $msg .= ".";
-                                    
-                                    $wa_link = "https://wa.me/".str_replace(['+',' ','-'], '', $phone)."?text=".urlencode($msg);
+                                    $phone = $row['client_phone'] ?? '';
+                                    if(!empty($phone)) {
+                                        if(substr($phone, 0, 1) === '0') {
+                                            $phone = '+92' . substr($phone, 1);
+                                        } elseif (substr($phone, 0, 3) !== '+92') {
+                                            $phone = '+92' . ltrim($phone, '+');
+                                        }
+                                        
+                                        $msg = "Hello ".$client_name.", your payment of Rs ".number_format($remaining)." for the '".$row['service_name']."' web project is due. Please clear it";
+                                        if($row['reminder_date']) {
+                                            $msg .= " by " . date('d M Y', strtotime($row['reminder_date']));
+                                        }
+                                        $msg .= ".";
+                                        
+                                        $wa_link = "https://wa.me/".str_replace(['+',' ','-'], '', $phone)."?text=".urlencode($msg);
                                 ?>
                                 <?php 
                                     if(has_permission('can_send_whatsapp')) {
@@ -327,7 +347,7 @@ if(isset($_POST['save']))
                                 <a href="<?php echo $wa_link; ?>" target="_blank" class="action-btn" style="background: #25D366; color: white; border-color: #25D366;" title="Send WhatsApp Reminder">
                                     <i class="bi bi-whatsapp"></i>
                                 </a>
-                                <?php } ?>
+                                <?php } } ?>
                                 <?php } ?>
                                 <?php if(has_permission('can_invoice_web_projects')) { ?>
                                 <a class="action-btn" 
@@ -366,6 +386,19 @@ if(isset($_POST['save']))
 <?php include 'footer.php'; ?>
 
 <script>
+function toggleCustomClient() {
+    const select = document.getElementById('clientSelect');
+    const input = document.getElementById('customClientName');
+    if (select.value === 'custom') {
+        input.style.display = 'block';
+        input.required = true;
+    } else {
+        input.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+
 document.getElementById('paymentClearedToggle').addEventListener('change', function() {
     const reminderContainer = document.getElementById('reminderDateContainer');
     if (this.checked) {
