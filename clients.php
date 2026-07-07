@@ -141,13 +141,14 @@ if(isset($_POST['save']))
                     </thead>
                     <tbody>
                     <?php
-                    $result = mysqli_query($conn,"SELECT * FROM clients");
+                    $result = mysqli_query($conn,"SELECT * FROM clients ORDER BY id DESC");
+                    $sr = 1;
 
                     while($row = mysqli_fetch_assoc($result))
                     {
                     ?>
                     <tr>
-                        <td style="font-weight: 600;">#<?php echo $row['id']; ?></td>
+                        <td style="font-weight: 600; color: var(--gray-500);">#<?php echo $sr++; ?></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <?php if(!empty($row['image']) && file_exists('assets/clients/'.$row['image'])) { ?>
