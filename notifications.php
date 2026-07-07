@@ -23,6 +23,31 @@ LEFT JOIN clients ON campaigns.client_id = clients.id
 WHERE campaigns.payment_due_date <= CURDATE() AND campaigns.payment_status = 'Pending'
 ");
 
+// Due Retainers
+$due_retainers_query = mysqli_query($conn, "
+SELECT s.*, c.name as client_name 
+FROM services s
+LEFT JOIN clients c ON s.client_id = c.id
+WHERE s.service_type = 'Monthly Service Retainer' AND s.status = 'Active' AND s.payment_due_date <= CURDATE()
+");
+$due_retainers_arr = [];
+while($r = mysqli_fetch_assoc($due_retainers_query)) {
+    $b = floatval($r['budget']);
+    $current_due = $r['payment_due_date'];
+    if($current_due && $current_due != '0000-00-00') {
+        $cycle_start = date('Y-m-d', strtotime('-1 month', strtotime($current_due)));
+    } else {
+        $cycle_start = $r['start_date'];
+    }
+    $rec_q = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(amount),0) as total FROM payments WHERE service_id='".$r['id']."' AND payment_date >= '$cycle_start'"));
+    $rec = floatval($rec_q['total']);
+    $remaining = max(0, $b - $rec);
+    if($remaining > 0) {
+        $r['remaining'] = $remaining;
+        $due_retainers_arr[] = $r;
+    }
+}
+
 // Follow-up Due/Overdue
 $followup_due = mysqli_query($conn,"
 SELECT * FROM leads
@@ -78,6 +103,7 @@ ORDER BY dn.dismissed_at DESC LIMIT 50
                     <?php 
                     $has_active = false;
                     if(can('payments') && mysqli_num_rows($due_payments) > 0) $has_active = true;
+                    if(can('payments') && count($due_retainers_arr) > 0) $has_active = true;
                     if(can('campaigns') && mysqli_num_rows($expiring_campaigns) > 0) $has_active = true;
                     if(can('leads') && mysqli_num_rows($followup_due) > 0) $has_active = true;
                     if(can('digital_tasks') && mysqli_num_rows($daily_tasks_pending) > 0) $has_active = true;
@@ -105,6 +131,22 @@ ORDER BY dn.dismissed_at DESC LIMIT 50
                             </button>
                         </div>
                         <?php endwhile; endif; ?>
+
+                        <!-- Due Retainers (Urgent - Red) -->
+                        <?php if(can('payments')): foreach($due_retainers_arr as $ret): ?>
+                        <div class="alert-item" style="border: 1px solid var(--danger-light); background: #fffcfc; display: flex; justify-content: space-between; align-items: center;" id="page-ret-<?php echo $ret['id']; ?>">
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <div class="alert-icon danger" style="margin:0;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                <div>
+                                    <h6 style="margin: 0; color: var(--danger); font-weight: 700;">Retainer Payment Due</h6>
+                                    <p style="margin: 3px 0 0 0; font-size: 14px; color: var(--navy-800);"><?php echo htmlspecialchars($ret['client_name']); ?> owes Rs <?php echo number_format($ret['remaining']); ?> for their monthly retainer.</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="dismissPageNotification('due_retainer', <?php echo $ret['id']; ?>, 'page-ret-<?php echo $ret['id']; ?>')">
+                                <i class="bi bi-check-lg"></i> Mark Read
+                            </button>
+                        </div>
+                        <?php endforeach; endif; ?>
 
                         <!-- Expiring Campaigns (Upcoming - Yellow) -->
                         <?php if(can('campaigns')): while($exp = mysqli_fetch_assoc($expiring_campaigns)): ?>

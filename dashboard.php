@@ -65,6 +65,31 @@ $followup_due_count = mysqli_num_rows($followup_due);
 
 $notification_count = $due_count + $expiring_count + $followup_due_count;
 
+$due_retainers_query = mysqli_query($conn, "
+SELECT s.*, c.name as client_name 
+FROM services s
+LEFT JOIN clients c ON s.client_id = c.id
+WHERE s.service_type = 'Monthly Service Retainer' AND s.status = 'Active' AND s.payment_due_date <= CURDATE()
+");
+$due_retainers_arr = [];
+while($r = mysqli_fetch_assoc($due_retainers_query)) {
+    $b = floatval($r['budget']);
+    $current_due = $r['payment_due_date'];
+    if($current_due && $current_due != '0000-00-00') {
+        $cycle_start = date('Y-m-d', strtotime('-1 month', strtotime($current_due)));
+    } else {
+        $cycle_start = $r['start_date'];
+    }
+    $rec_q = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(amount),0) as total FROM payments WHERE service_id='".$r['id']."' AND payment_date >= '$cycle_start'"));
+    $rec = floatval($rec_q['total']);
+    $remaining = max(0, $b - $rec);
+    if($remaining > 0) {
+        $r['remaining'] = $remaining;
+        $due_retainers_arr[] = $r;
+    }
+}
+$due_retainers_count = count($due_retainers_arr);
+
 $due_payments_arr = [];
 while($r = mysqli_fetch_assoc($due_payments)) { $due_payments_arr[] = $r; }
 
@@ -85,7 +110,10 @@ $daily_tasks_arr = [];
 while($r = mysqli_fetch_assoc($daily_tasks_pending)) { $daily_tasks_arr[] = $r; }
 
 $notification_count = 0;
-if(can('payments')) $notification_count += $due_count;
+if(can('payments')) {
+    $notification_count += $due_count;
+    $notification_count += $due_retainers_count;
+}
 if(can('campaigns')) $notification_count += $expiring_count;
 if(can('leads')) $notification_count += $followup_due_count;
 if(can('digital_tasks')) $notification_count += $daily_tasks_pending_count;
@@ -141,6 +169,19 @@ if(can('digital_tasks')) $notification_count += $daily_tasks_pending_count;
                                     <div style="font-size: 12px; color: var(--gray-600); margin-top: 2px;">Rs <?php echo number_format($due['budget']); ?> pending from <?php echo $due['client_name']; ?>.</div>
                                 </div>
                                 <button class="btn btn-sm text-gray-400" onclick="dismissNotification('due_payment', <?php echo $due['id']; ?>, 'notif-due-<?php echo $due['id']; ?>')" title="Mark as Read" style="padding: 0; background: none; border: none;">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                            </div>
+                        <?php endforeach; endif; ?>
+
+                        <?php if(can('payments')): foreach($due_retainers_arr as $ret): ?>
+                            <div class="dropdown-item" style="padding: 12px 15px; border-bottom: 1px solid var(--gray-100); white-space: normal; display: flex; gap: 10px; align-items: flex-start;" id="notif-ret-<?php echo $ret['id']; ?>">
+                                <i class="bi bi-exclamation-circle-fill text-danger mt-1"></i>
+                                <div style="flex-grow: 1;">
+                                    <div style="font-weight: 600; font-size: 13px; color: var(--navy-800);">Retainer Payment Due</div>
+                                    <div style="font-size: 12px; color: var(--gray-600); margin-top: 2px;">Rs <?php echo number_format($ret['remaining']); ?> pending from <?php echo $ret['client_name']; ?> (Monthly Retainer).</div>
+                                </div>
+                                <button class="btn btn-sm text-gray-400" onclick="dismissNotification('due_retainer', <?php echo $ret['id']; ?>, 'notif-ret-<?php echo $ret['id']; ?>')" title="Mark as Read" style="padding: 0; background: none; border: none;">
                                     <i class="bi bi-x-circle-fill"></i>
                                 </button>
                             </div>
