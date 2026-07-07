@@ -278,7 +278,7 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                         services.reminder_date,
                         clients.name as client_name, 
                         clients.phone as client_phone,
-                        IFNULL(SUM(payments.amount),0) as received,
+                        GREATEST(IFNULL(services.advance_amount, 0), IFNULL(SUM(payments.amount),0)) as received,
                         'service' as type
                     FROM services
                     LEFT JOIN clients ON services.client_id = clients.id

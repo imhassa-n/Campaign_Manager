@@ -245,7 +245,8 @@ if(isset($_POST['save']))
                     <tbody>
                     <?php
                     $result = mysqli_query($conn,"
-                    SELECT services.*, clients.name as client_name, clients.phone as client_phone
+                    SELECT services.*, clients.name as client_name, clients.phone as client_phone,
+                    GREATEST(IFNULL(services.advance_amount, 0), IFNULL((SELECT SUM(amount) FROM payments WHERE service_id = services.id), 0)) as calculated_advance
                     FROM services
                     LEFT JOIN clients ON services.client_id = clients.id
                     WHERE services.service_type = 'Website Development'
@@ -254,7 +255,7 @@ if(isset($_POST['save']))
 
                     while($row = mysqli_fetch_assoc($result))
                     {
-                        $advance = floatval($row['advance_amount']);
+                        $advance = floatval($row['calculated_advance']);
                         $budget = floatval($row['budget']);
                         $remaining = $budget - $advance;
                     ?>
