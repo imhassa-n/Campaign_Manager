@@ -271,7 +271,7 @@ if(isset($_POST['save']))
                     <tbody>
                     <?php
                     $result = mysqli_query($conn,"
-                    SELECT campaigns.*, clients.name as client_name, clients.phone as client_phone
+                    SELECT campaigns.*, clients.name as client_name, clients.phone as client_phone, clients.image as client_image
                     FROM campaigns
                     LEFT JOIN clients ON campaigns.client_id = clients.id
                     ORDER BY campaigns.id DESC
@@ -284,9 +284,18 @@ if(isset($_POST['save']))
                     <tr <?php if($is_expiring) echo 'style="background-color: #fff1f2;"'; ?>>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
+                                <?php if(!empty($row['client_image'])) { 
+                                    $img_src = (strpos($row['client_image'], 'data:image') === 0) ? $row['client_image'] : 'assets/clients/'.$row['client_image'];
+                                ?>
+                                <img src="<?php echo $img_src; ?>" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid white;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-600), var(--navy-600)); align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 11px; flex-shrink: 0; display: none;">
+                                    <?php echo strtoupper(substr($row['client_name'], 0, 1)); ?>
+                                </div>
+                                <?php } else { ?>
                                 <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--teal-600), var(--navy-600)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 11px; flex-shrink: 0;">
                                     <?php echo strtoupper(substr($row['client_name'], 0, 1)); ?>
                                 </div>
+                                <?php } ?>
                                 <span style="font-weight: 500;"><?php echo $row['client_name']; ?></span>
                             </div>
                         </td>
