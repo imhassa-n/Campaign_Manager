@@ -343,7 +343,7 @@ if(isset($_POST['save']))
                                     }
                                 ?>
                                 <!-- Add Partial Payment Button -->
-                                <button type="button" class="action-btn" style="background: #0ea5e9; color: white; border-color: #0ea5e9;" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, '<?php echo addslashes($row['client_name']); ?>', '<?php echo addslashes($row['service_name']); ?>', <?php echo $remaining; ?>, '<?php echo addslashes($history_html); ?>')">
+                                <button type="button" class="action-btn" style="background: #0ea5e9; color: white; border-color: #0ea5e9;" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, <?php echo htmlspecialchars(json_encode($row['client_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($row['service_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo $remaining; ?>, <?php echo htmlspecialchars(json_encode($history_html), ENT_QUOTES, 'UTF-8'); ?>)">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                                 <?php } ?>
