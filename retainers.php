@@ -367,7 +367,7 @@ if(isset($_POST['save']))
                         <?php if(can('payments')): ?>
                         <td style="font-weight: 600; color: #16a34a;">Rs <?php echo number_format($budget); ?></td>
                         <td>
-                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between;">
+                            <div style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; white-space: nowrap;">
                                 <span><span style="color: <?php echo ($percent >= 100) ? '#16a34a' : '#0f172a'; ?>;">Rs <?php echo number_format($received); ?></span> <span style="color: #94a3b8; font-weight: 500;">/ <?php echo number_format($budget); ?></span></span>
                                 <?php if($remaining > 0) { ?>
                                 <span style="color: #ef4444; font-size: 11px;">Rs <?php echo number_format($remaining); ?> left</span>
@@ -383,9 +383,9 @@ if(isset($_POST['save']))
                         <td style="font-weight: 500; color: var(--navy-600);">
                             <?php echo date('d M, Y', strtotime($row['start_date'])); ?>
                         </td>
-                        <td style="font-weight: 600; color: <?php echo ($is_due) ? 'var(--danger)' : (($is_upcoming) ? '#d97706' : 'var(--navy-800)'); ?>;">
-                            <?php echo $next_billing_date ? date('d M, Y', strtotime($next_billing_date)) : '-'; ?>
-                            <br><?php echo $badge_html; ?>
+                        <td style="font-weight: 600; color: <?php echo ($is_due) ? 'var(--danger)' : (($is_upcoming) ? '#d97706' : 'var(--navy-800)'); ?>; white-space: nowrap;">
+                            <div style="margin-bottom: 4px;"><?php echo $next_billing_date ? date('d M, Y', strtotime($next_billing_date)) : '-'; ?></div>
+                            <?php echo $badge_html; ?>
                         </td>
                         <td>
                             <?php
@@ -399,7 +399,7 @@ if(isset($_POST['save']))
                             ?>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 6px; align-items: center;">
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; white-space: nowrap;">
                                 
                                 <?php if(can('payments')): ?>
                                 <?php if($remaining > 0) { 
