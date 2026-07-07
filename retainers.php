@@ -336,9 +336,13 @@ if(isset($_POST['save']))
                                     $hist_query = mysqli_query($conn, "SELECT * FROM payments WHERE service_id='".$row['id']."' AND payment_date >= '$cycle_start' ORDER BY payment_date DESC");
                                     $history_html = '';
                                     while($h = mysqli_fetch_assoc($hist_query)) {
-                                        $history_html .= '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#f8fafc; border-radius:8px; margin-bottom:6px;">';
-                                        $history_html .= '<div><span style="font-weight:600; color:#0f172a;">Rs '.number_format($h['amount']).'</span> <span style="font-size:11px; color:#94a3b8;">'.date('d M Y', strtotime($h['payment_date'])).'</span></div>';
-                                        $history_html .= '<a href="edit_payment.php?id='.$h['id'].'" class="action-btn edit" style="width:26px;height:26px;font-size:11px;" title="Edit"><i class="bi bi-pencil-fill"></i></a>';
+                                        $method = !empty($h['payment_method']) ? htmlspecialchars($h['payment_method']) : 'Cash';
+                                        $history_html .= '<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f1f5f9; border: 1px solid #e2e8f0; border-radius:8px;">';
+                                        $history_html .= '<div>';
+                                        $history_html .= '<div style="font-weight:700; color:#0f172a; font-size: 14px;">Rs '.number_format($h['amount']).'</div>';
+                                        $history_html .= '<div style="font-size:11px; color:#64748b; margin-top:2px;">'.$method.' &bull; '.date('d M Y', strtotime($h['payment_date'])).'</div>';
+                                        $history_html .= '</div>';
+                                        $history_html .= '<a href="edit_payment.php?id='.$h['id'].'" class="action-btn edit" style="width:28px;height:28px;font-size:12px; background:white; border-color:#cbd5e1;" title="Edit"><i class="bi bi-pencil-fill"></i></a>';
                                         $history_html .= '</div>';
                                     }
                                 ?>
@@ -418,43 +422,56 @@ if(isset($_POST['save']))
 </div>
 
 <!-- Partial Payment Modal -->
-<div id="paymentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:28px; width:460px; max-width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.15); position:relative; max-height:90vh; overflow-y:auto;">
-        <button onclick="closePaymentModal()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#94a3b8;">&times;</button>
-        <h3 style="margin:0 0 4px 0; font-size:18px; color:#0f172a;"><i class="bi bi-cash-stack" style="color:#0ea5e9;"></i> Add Payment</h3>
-        <p id="modalClientInfo" style="color:#64748b; font-size:13px; margin:0 0 16px 0;"></p>
+<div id="paymentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    <div style="background:white; border-radius:16px; width:460px; max-width:95%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); position:relative; max-height:90vh; overflow-y:auto; padding:0;">
         
-        <!-- Payment History -->
-        <div id="modalHistory" style="display:none; margin-bottom:16px;">
-            <div style="font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;"><i class="bi bi-clock-history"></i> Previous Payments</div>
-            <div id="modalHistoryList"></div>
+        <!-- Header -->
+        <div style="background: #f8fafc; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; border-radius: 16px 16px 0 0; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h3 style="margin:0 0 4px 0; font-size:18px; color:#0f172a; font-weight:700;"><i class="bi bi-wallet2" style="color:#0ea5e9; margin-right: 6px;"></i> Record Payment</h3>
+                <p id="modalClientInfo" style="color:#64748b; font-size:13px; margin:0;"></p>
+            </div>
+            <button onclick="closePaymentModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8; line-height:1; padding:0;">&times;</button>
         </div>
-
-        <form method="POST" action="add_partial_payment.php">
-            <input type="hidden" name="service_id" id="modalServiceId">
-            <input type="hidden" name="save_partial" value="1">
-            <div style="margin-bottom:14px;">
-                <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Amount (Rs)</label>
-                <input type="number" name="amount" id="modalAmount" class="form-control" placeholder="Enter amount" required style="font-size:15px; font-weight:600;">
-                <div id="modalRemaining" style="font-size:11px; color:#64748b; margin-top:4px;"></div>
+        
+        <div style="padding: 24px;">
+            <form method="POST" action="add_partial_payment.php">
+                <input type="hidden" name="service_id" id="modalServiceId">
+                <input type="hidden" name="save_partial" value="1">
+                
+                <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                    <div style="flex: 1;">
+                        <label style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">Amount (Rs)</label>
+                        <input type="number" name="amount" id="modalAmount" class="form-control" placeholder="0" required style="font-size:16px; font-weight:600; padding: 10px 14px;">
+                        <div id="modalRemaining" style="font-size:11.5px; color:#0ea5e9; font-weight:600; margin-top:6px;"></div>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">Method</label>
+                        <select name="payment_method" class="form-control form-select" style="padding: 10px 14px; font-weight:500;">
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="JazzCash">JazzCash</option>
+                            <option value="EasyPaisa">EasyPaisa</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">Note (Optional)</label>
+                    <input type="text" name="notes" class="form-control" placeholder="e.g. advance, remaining, etc." style="padding: 10px 14px;">
+                </div>
+                
+                <button type="submit" class="btn-brand" style="width:100%; padding: 12px; font-size: 15px;"><i class="bi bi-check2-circle"></i> Save Payment</button>
+            </form>
+            
+            <!-- History Section -->
+            <div id="modalHistory" style="margin-top: 24px; padding-top: 20px; border-top: 1px dashed #cbd5e1; display:none;">
+                <label style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; display:block;"><i class="bi bi-clock-history"></i> Payment History (This Month)</label>
+                <div id="modalHistoryList" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
-            <div style="margin-bottom:14px;">
-                <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Payment Method</label>
-                <select name="payment_method" class="form-control form-select">
-                    <option value="Cash">Cash</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="JazzCash">JazzCash</option>
-                    <option value="EasyPaisa">EasyPaisa</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div style="margin-bottom:18px;">
-                <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:4px;">Note (Optional)</label>
-                <input type="text" name="notes" class="form-control" placeholder="e.g. half payment, advance...">
-            </div>
-            <button type="submit" class="btn-brand" style="width:100%;"><i class="bi bi-check-circle-fill"></i> Save Payment</button>
-        </form>
+        </div>
     </div>
 </div>
 
