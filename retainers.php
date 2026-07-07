@@ -171,6 +171,66 @@ if(isset($_POST['save']))
 <!-- Content -->
 <div class="content-wrapper">
 
+    <?php
+    if(can('payments')) {
+        $total_monthly_fee = 0;
+        $total_received = 0;
+        $total_pending = 0;
+
+        $stats_query = mysqli_query($conn,"
+        SELECT id, budget, start_date, payment_due_date 
+        FROM services
+        WHERE service_type = 'Monthly Service Retainer' AND status = 'Active'
+        ");
+
+        while($s = mysqli_fetch_assoc($stats_query)) {
+            $b = floatval($s['budget']);
+            $total_monthly_fee += $b;
+
+            $current_due = $s['payment_due_date'];
+            if($current_due && $current_due != '0000-00-00') {
+                $cycle_start = date('Y-m-d', strtotime('-1 month', strtotime($current_due)));
+            } else {
+                $cycle_start = $s['start_date'];
+            }
+
+            $rec_q = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(amount),0) as total FROM payments WHERE service_id='".$s['id']."' AND payment_date >= '$cycle_start'"));
+            $rec = floatval($rec_q['total']);
+            
+            $total_received += $rec;
+            $total_pending += max(0, $b - $rec);
+        }
+    ?>
+    <!-- Primary Metrics Grid -->
+    <div class="grid-4 mb-4">
+        
+        <div class="metric-card">
+            <div class="metric-icon success">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="metric-label">Total Monthly Expected</div>
+            <div class="metric-value">Rs <?php echo number_format($total_monthly_fee); ?></div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon teal">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="metric-label">Received This Cycle</div>
+            <div class="metric-value">Rs <?php echo number_format($total_received); ?></div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon danger">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="metric-label">Pending Receivables</div>
+            <div class="metric-value">Rs <?php echo number_format($total_pending); ?></div>
+        </div>
+
+    </div>
+    <?php } ?>
+
     <!-- Add Service Form -->
     <div class="page-card mb-4">
         <div class="page-card-header">
