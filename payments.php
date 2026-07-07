@@ -65,7 +65,7 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
     <div class="topbar-right">
         <div class="topbar-search">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search payments..." id="paymentSearch" onkeyup="filterTable('paymentsTable')">
+            <input type="text" placeholder="Search payments & receivables..." id="paymentSearch" onkeyup="filterTables()">
         </div>
     </div>
 </div>
@@ -232,14 +232,12 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
         </div>
         <div class="page-card-body" style="padding: 0;">
             <div class="table-wrapper">
-                <table class="modern-table">
+                <table class="modern-table" id="receivablesTable">
                     <thead>
                     <tr>
                         <th>Client</th>
                         <th>Project / Month</th>
-                        <th>Agreed Budget</th>
-                        <th>Received</th>
-                        <th>Remaining</th>
+                        <th style="width: 150px;">Status</th>
                         <th>Due Date</th>
                         <th>Action</th>
                     </tr>
@@ -296,9 +294,14 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                     while($p = mysqli_fetch_assoc($pending_query))
                     {
                         $has_pending = true;
-                        $remaining = $p['budget'] - $p['received'];
+                        $budget = floatval($p['budget']);
+                        $received = floatval($p['received']);
+                        $remaining = $budget - $received;
                         $valid_due_date = $p['payment_due_date'] && $p['payment_due_date'] != '0000-00-00';
                         $is_overdue = $valid_due_date && strtotime($p['payment_due_date']) < strtotime('today');
+                        
+                        $percent = $budget > 0 ? ($received / $budget) * 100 : 0;
+                        $percent = min(100, $percent);
                     ?>
                     <tr <?php if($is_overdue) echo 'style="background-color: #fff1f2;"'; ?>>
                         <td>
@@ -320,12 +323,26 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                                 <?php echo date('d M', strtotime($p['start_date'])) . ' - ' . date('d M, Y', strtotime($p['end_date'])); ?>
                             </span>
                         </td>
-                        <td style="font-weight: 600;">Rs <?php echo number_format($p['budget']); ?></td>
-                        <td style="color: var(--success); font-weight: 600;">Rs <?php echo number_format($p['received']); ?></td>
-                        <td style="color: var(--danger); font-weight: 700;">Rs <?php echo number_format($remaining); ?></td>
+                        <td>
+                            <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px; color: var(--navy-800);">
+                                Rs <?php echo number_format($received); ?> <span style="color: var(--gray-500); font-weight: 500;">/ <?php echo number_format($budget); ?></span>
+                            </div>
+                            <div style="background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden; width: 100%;">
+                                <div style="background: <?php echo $percent == 100 ? 'var(--success)' : 'var(--orange-500)'; ?>; height: 100%; width: <?php echo $percent; ?>%;"></div>
+                            </div>
+                            <?php if($remaining > 0): ?>
+                            <div style="font-size: 10px; color: var(--danger); margin-top: 3px; font-weight: 700;">Remaining: Rs <?php echo number_format($remaining); ?></div>
+                            <?php else: ?>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 3px; font-weight: 700;"><i class="bi bi-check-circle-fill"></i> Full Paid</div>
+                            <?php endif; ?>
+                        </td>
                         <td style="font-weight: 500; color: var(--navy-600);">
-                            <?php echo $valid_due_date ? date('d M, Y', strtotime($p['payment_due_date'])) : '<span style="color: var(--gray-400);">Not Set</span>'; ?>
-                            <?php if($is_overdue) echo '<br><span style="font-size: 10px; color: var(--danger); font-weight: 700;"><i class="bi bi-exclamation-circle-fill"></i> Overdue</span>'; ?>
+                            <?php if($valid_due_date): ?>
+                                <?php echo date('d M, Y', strtotime($p['payment_due_date'])); ?>
+                                <?php if($is_overdue) echo '<br><span style="display:inline-block; margin-top:4px; font-size: 10px; padding: 2px 6px; background:#fee2e2; color: var(--danger); border-radius:4px; font-weight: 700;"><i class="bi bi-exclamation-circle-fill"></i> Overdue</span>'; ?>
+                            <?php else: ?>
+                                <span style="color: var(--gray-400);">Not Set</span>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <?php
@@ -357,7 +374,7 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                     if(!$has_pending) {
                     ?>
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 30px; color: var(--gray-500);">
+                        <td colspan="5" style="text-align: center; padding: 30px; color: var(--gray-500);">
                             <i class="bi bi-check-circle-fill text-success" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
                             All payments are cleared! No pending receivables.
                         </td>
@@ -524,10 +541,21 @@ function toggleCustomClient() {
     }
 }
 
-function filterTable(tableId) {
+function filterTables() {
     const query = document.getElementById('paymentSearch').value.toLowerCase();
-    const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
-    rows.forEach(row => {
+    
+    // Filter Receivables
+    const recRows = document.querySelectorAll('#receivablesTable tbody tr');
+    recRows.forEach(row => {
+        if(row.cells.length === 1) return; // Skip empty state row
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    // Filter Payments
+    const payRows = document.querySelectorAll('#paymentsTable tbody tr');
+    payRows.forEach(row => {
+        if(row.cells.length === 1) return;
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(query) ? '' : 'none';
     });
