@@ -136,8 +136,21 @@ if(isset($_POST['update']))
                         <div class="form-section">
                             <label class="form-label">Upload Logo</label>
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <?php if(!empty($client['image'])) { 
-                                    $img_src = (strpos($client['image'], 'data:image') === 0) ? $client['image'] : 'assets/clients/'.$client['image'];
+                                <?php 
+                                $has_img = false;
+                                $img_src = '';
+                                if(!empty($client['image'])) { 
+                                    if(strpos($client['image'], 'data:image') === 0) {
+                                        if(strlen($client['image']) > 255) {
+                                            $has_img = true;
+                                            $img_src = $client['image'];
+                                        }
+                                    } else if(file_exists('assets/clients/'.$client['image'])) {
+                                        $has_img = true;
+                                        $img_src = 'assets/clients/'.$client['image'];
+                                    }
+                                }
+                                if($has_img) {
                                 ?>
                                 <img src="<?php echo $img_src; ?>" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 2px solid white;">
                                 <?php } ?>

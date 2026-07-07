@@ -152,8 +152,22 @@ if(isset($_POST['save']))
                         <td style="font-weight: 600; color: var(--gray-500);">#<?php echo $sr++; ?></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <?php if(!empty($row['image'])) { 
-                                    $img_src = (strpos($row['image'], 'data:image') === 0) ? $row['image'] : 'assets/clients/'.$row['image'];
+                                <?php 
+                                $has_img = false;
+                                $img_src = '';
+                                if(!empty($row['image'])) { 
+                                    if(strpos($row['image'], 'data:image') === 0) {
+                                        // Check if base64 might be truncated from old varchar(255) column
+                                        if(strlen($row['image']) > 255) {
+                                            $has_img = true;
+                                            $img_src = $row['image'];
+                                        }
+                                    } else if(file_exists('assets/clients/'.$row['image'])) {
+                                        $has_img = true;
+                                        $img_src = 'assets/clients/'.$row['image'];
+                                    }
+                                }
+                                if($has_img) {
                                 ?>
                                 <img src="<?php echo $img_src; ?>" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: var(--shadow-sm); border: 2px solid white;">
                                 <?php } else { ?>
