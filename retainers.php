@@ -122,7 +122,15 @@ if(isset($_POST['save']))
                             <select name="client_id" class="form-control form-select" required>
                                 <option value="">Choose a client...</option>
                                 <?php
-                                $clients = mysqli_query($conn,"SELECT * FROM clients ORDER BY name ASC");
+                                $clients = mysqli_query($conn,"
+                                    SELECT * FROM clients c
+                                    WHERE NOT EXISTS (
+                                        SELECT 1 FROM services s 
+                                        WHERE s.client_id = c.id 
+                                        AND s.service_type = 'Monthly Service Retainer'
+                                    )
+                                    ORDER BY name ASC
+                                ");
                                 while($client = mysqli_fetch_assoc($clients))
                                 {
                                 ?>
