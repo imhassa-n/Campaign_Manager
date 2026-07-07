@@ -209,6 +209,9 @@ while($r = mysqli_fetch_assoc($followup_due)) { $followup_due_arr[] = $r; }
                                 </div>
                                 <div>
                                     <span style="font-weight: 600;"><?php echo htmlspecialchars($row['client_name']); ?></span>
+                                    <?php if(!empty($row['business_name'])): ?>
+                                        <div style="font-size: 11px; color: var(--brand-600); font-weight: 600;"><i class="bi bi-building me-1"></i><?php echo htmlspecialchars($row['business_name']); ?></div>
+                                    <?php endif; ?>
                                     <div style="font-size: 11px; color: var(--gray-500); margin-top: 1px;"><i class="bi bi-telephone me-1" style="font-size: 10px;"></i><?php echo htmlspecialchars($row['phone']); ?></div>
                                 </div>
                             </div>

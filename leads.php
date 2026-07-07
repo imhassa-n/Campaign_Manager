@@ -14,6 +14,7 @@ require_once 'auth.php';
 if(isset($_POST['save']))
 {
     $client_name = mysqli_real_escape_string($conn, $_POST['client_name']);
+    $business_name = mysqli_real_escape_string($conn, $_POST['business_name']);
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
     $service_interest = mysqli_real_escape_string($conn, $_POST['service_interest']);
     $action_type = mysqli_real_escape_string($conn, $_POST['action_type']);
@@ -21,8 +22,8 @@ if(isset($_POST['save']))
     $notes = mysqli_real_escape_string($conn, $_POST['notes']);
 
     mysqli_query($conn,"
-    INSERT INTO leads(client_name, phone, service_interest, action_type, followup_date, notes)
-    VALUES('$client_name','$phone','$service_interest','$action_type','$followup_date','$notes')
+    INSERT INTO leads(client_name, business_name, phone, service_interest, action_type, followup_date, notes)
+    VALUES('$client_name','$business_name','$phone','$service_interest','$action_type','$followup_date','$notes')
     ");
 
     header("Location: leads.php");
@@ -163,19 +164,25 @@ while($r = mysqli_fetch_assoc($followup_due)) { $followup_due_arr[] = $r; }
 
                 <div class="section-title"><i class="bi bi-person-fill"></i> Client Details</div>
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-section">
                             <label class="form-label">Client Name</label>
                             <input type="text" name="client_name" class="form-control" placeholder="Enter client's full name" required>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <div class="form-section">
+                            <label class="form-label">Business Name</label>
+                            <input type="text" name="business_name" class="form-control" placeholder="e.g. ABC Corp">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="form-section">
                             <label class="form-label">Phone Number</label>
                             <input type="text" name="phone" class="form-control" placeholder="e.g. 03001234567" required>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-section">
                             <label class="form-label">Service Interest</label>
                             <select name="service_interest" class="form-control form-select">
@@ -291,6 +298,9 @@ while($r = mysqli_fetch_assoc($followup_due)) { $followup_due_arr[] = $r; }
                                 </div>
                                 <div>
                                     <span style="font-weight: 500;"><?php echo htmlspecialchars($row['client_name']); ?></span>
+                                    <?php if(!empty($row['business_name'])): ?>
+                                        <div style="font-size: 11px; color: var(--brand-600); font-weight: 600;"><i class="bi bi-building me-1"></i><?php echo htmlspecialchars($row['business_name']); ?></div>
+                                    <?php endif; ?>
                                     <div style="font-size: 11px; color: var(--gray-500); margin-top: 1px;"><i class="bi bi-telephone me-1" style="font-size: 10px;"></i><?php echo htmlspecialchars($row['phone']); ?></div>
                                 </div>
                             </div>

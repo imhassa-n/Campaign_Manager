@@ -28,6 +28,7 @@ if(!$lead) {
 if(isset($_POST['update']))
 {
     $client_name = mysqli_real_escape_string($conn, $_POST['client_name']);
+    $business_name = mysqli_real_escape_string($conn, $_POST['business_name']);
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
     $service_interest = mysqli_real_escape_string($conn, $_POST['service_interest']);
     $action_type = mysqli_real_escape_string($conn, $_POST['action_type']);
@@ -37,6 +38,7 @@ if(isset($_POST['update']))
     mysqli_query($conn,"
     UPDATE leads SET 
         client_name='$client_name', 
+        business_name='$business_name', 
         phone='$phone', 
         service_interest='$service_interest', 
         action_type='$action_type', 
@@ -75,13 +77,19 @@ if(isset($_POST['update']))
         <div class="page-card-body">
             <form method="POST">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-section">
                             <label class="form-label">Client Name</label>
                             <input type="text" name="client_name" class="form-control" value="<?php echo htmlspecialchars($lead['client_name']); ?>" required>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <div class="form-section">
+                            <label class="form-label">Business Name</label>
+                            <input type="text" name="business_name" class="form-control" value="<?php echo htmlspecialchars($lead['business_name'] ?? ''); ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
                         <div class="form-section">
                             <label class="form-label">Phone Number</label>
                             <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($lead['phone']); ?>" required>
