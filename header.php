@@ -132,6 +132,11 @@ if(file_exists(__DIR__ . '/auth.php')) require_once __DIR__ . '/auth.php';
             <i class="bi bi-credit-card-fill"></i>
             Payments
         </a>
+        <a href="payment_history.php"
+           class="sidebar-link <?php echo ($current_page == 'payment_history.php') ? 'active' : ''; ?>">
+            <i class="bi bi-clock-history"></i>
+            Payment History
+        </a>
         <?php endif; ?>
 
         <?php if(can('expenses')): ?>
