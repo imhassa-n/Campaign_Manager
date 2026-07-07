@@ -173,10 +173,10 @@ if(isset($_POST['save']))
                             <?php 
                             $tag = $row['tag'] ?? 'Active';
                             $badgeClass = '';
-                            if($tag == 'VIP') $badgeClass = 'background: var(--purple-100); color: var(--purple-700);';
-                            elseif($tag == 'Active') $badgeClass = 'background: var(--green-100); color: var(--green-700);';
-                            elseif($tag == 'Pending') $badgeClass = 'background: var(--orange-100); color: var(--orange-700);';
-                            else $badgeClass = 'background: var(--gray-100); color: var(--gray-700);';
+                            if($tag == 'VIP') $badgeClass = 'background: #f3e8ff; color: #7e22ce;';
+                            elseif($tag == 'Active') $badgeClass = 'background: #dcfce7; color: #15803d;';
+                            elseif($tag == 'Pending') $badgeClass = 'background: #ffedd5; color: #c2410c;';
+                            else $badgeClass = 'background: #f1f5f9; color: #475569;';
                             ?>
                             <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; <?php echo $badgeClass; ?>">
                                 <?php echo htmlspecialchars($tag); ?>
