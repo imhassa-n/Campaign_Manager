@@ -407,7 +407,7 @@ if(isset($_POST['save']))
                                     $hist_query = mysqli_query($conn, "SELECT * FROM payments WHERE service_id='".$row['id']."' AND payment_date >= '$cycle_start' ORDER BY payment_date DESC");
                                     $history_html = '';
                                     while($h = mysqli_fetch_assoc($hist_query)) {
-                                        $method = !empty($h['payment_method']) ? htmlspecialchars($h['payment_method']) : 'Cash';
+                                        $method = !empty($h['payment_method']) ? htmlspecialchars($h['payment_method']) : 'Online Transfer';
                                         $history_html .= '<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f1f5f9; border: 1px solid #e2e8f0; border-radius:8px;">';
                                         $history_html .= '<div>';
                                         $history_html .= '<div style="font-weight:700; color:#0f172a; font-size: 14px;">Rs '.number_format($h['amount']).'</div>';
@@ -518,6 +518,7 @@ if(isset($_POST['save']))
                     <div style="flex: 1;">
                         <label style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">Method</label>
                         <select name="payment_method" class="form-control form-select" style="padding: 10px 14px; font-weight:500;">
+                            <option value="Online Transfer">Online Transfer</option>
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="JazzCash">JazzCash</option>

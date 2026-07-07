@@ -93,6 +93,7 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                 </select>
                 <select id="historyMethodFilter" class="form-control form-select" style="width: auto; height: 36px; padding: 4px 30px 4px 10px; font-size: 13px;" onchange="filterTables()">
                     <option value="">All Methods</option>
+                    <option value="Online Transfer">Online Transfer</option>
                     <option value="Cash">Cash</option>
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="JazzCash">JazzCash</option>
@@ -132,8 +133,10 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                     while($row = mysqli_fetch_assoc($result))
                     {
                         // Method badges
-                        $method = $row['payment_method'] ?? 'Cash';
+                        $method = $row['payment_method'] ?? 'Online Transfer';
+                        
                         $method_colors = [
+                            'Online Transfer' => '#0ea5e9',
                             'Cash' => '#10b981',
                             'Bank Transfer' => '#3b82f6',
                             'JazzCash' => '#ef4444',
@@ -142,6 +145,7 @@ $payment_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt F
                             'Other' => '#6b7280'
                         ];
                         $method_icons = [
+                            'Online Transfer' => 'bi-globe',
                             'Cash' => 'bi-cash',
                             'Bank Transfer' => 'bi-bank',
                             'JazzCash' => 'bi-phone',
