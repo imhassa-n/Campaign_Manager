@@ -85,7 +85,71 @@ if(isset($_POST['save']))
 
 <?php include 'header.php'; ?>
 
-<!-- Top Bar -->
+<style>
+/* Modern professional tweaks for retainers */
+.modern-table tbody td {
+    padding: 16px;
+    font-size: 13.5px;
+}
+.soft-badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.3px;
+}
+.soft-badge.due { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+.soft-badge.upcoming { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+.soft-badge.track { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+
+.action-btn-soft {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+}
+.action-btn-soft.pay { background: #f0f9ff; color: #0284c7; }
+.action-btn-soft.pay:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+
+.action-btn-soft.renew { background: #f0fdf4; color: #16a34a; }
+.action-btn-soft.renew:hover { background: #16a34a; color: white; border-color: #16a34a; }
+
+.action-btn-soft.wa { background: #f0fdf4; color: #25d366; }
+.action-btn-soft.wa:hover { background: #25d366; color: white; border-color: #25d366; }
+
+.action-btn-soft.inv { background: #f8fafc; color: #475569; }
+.action-btn-soft.inv:hover { background: #e2e8f0; color: #0f172a; }
+
+.action-btn-soft.edit { background: #f8fafc; color: #64748b; }
+.action-btn-soft.edit:hover { background: #f1f5f9; color: #0f172a; }
+
+.action-btn-soft.del { background: #fef2f2; color: #ef4444; }
+.action-btn-soft.del:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
 <div class="topbar">
     <div class="topbar-left">
         <button class="mobile-toggle" onclick="openSidebar()">
@@ -270,12 +334,12 @@ if(isset($_POST['save']))
                         if ($next_billing_date) {
                             if ($next_billing_date <= $today) {
                                 $is_due = true;
-                                $badge_html = '<span style="font-size: 11px; background: var(--danger-light); color: var(--danger); padding: 2px 6px; border-radius: 4px;"><i class="bi bi-exclamation-circle-fill"></i> Payment Due</span>';
+                                $badge_html = '<span class="soft-badge due"><i class="bi bi-exclamation-circle-fill"></i> Payment Due</span>';
                             } else if ($next_billing_date <= date('Y-m-d', strtotime('+3 days'))) {
                                 $is_upcoming = true;
-                                $badge_html = '<span style="font-size: 11px; background: #fef3c7; color: #d97706; padding: 2px 6px; border-radius: 4px;"><i class="bi bi-clock-fill"></i> Upcoming Soon</span>';
+                                $badge_html = '<span class="soft-badge upcoming"><i class="bi bi-clock-fill"></i> Upcoming Soon</span>';
                             } else {
-                                $badge_html = '<span style="font-size: 11px; background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 4px;"><i class="bi bi-check-circle-fill"></i> On Track</span>';
+                                $badge_html = '<span class="soft-badge track"><i class="bi bi-check-circle-fill"></i> On Track</span>';
                             }
                         }
                     ?>
@@ -303,18 +367,17 @@ if(isset($_POST['save']))
                         <?php if(can('payments')): ?>
                         <td style="font-weight: 600; color: #16a34a;">Rs <?php echo number_format($budget); ?></td>
                         <td>
-                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">
-                                <span style="color: <?php echo ($percent >= 100) ? '#16a34a' : '#1e293b'; ?>;">Rs <?php echo number_format($received); ?></span>
-                                <span style="color: #94a3b8;">/ <?php echo number_format($budget); ?></span>
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between;">
+                                <span><span style="color: <?php echo ($percent >= 100) ? '#16a34a' : '#0f172a'; ?>;">Rs <?php echo number_format($received); ?></span> <span style="color: #94a3b8; font-weight: 500;">/ <?php echo number_format($budget); ?></span></span>
+                                <?php if($remaining > 0) { ?>
+                                <span style="color: #ef4444; font-size: 11px;">Rs <?php echo number_format($remaining); ?> left</span>
+                                <?php } else { ?>
+                                <span style="color: #16a34a; font-size: 11px;"><i class="bi bi-check2-all"></i> Paid</span>
+                                <?php } ?>
                             </div>
-                            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                                <div style="width: <?php echo $percent; ?>%; height: 100%; background: <?php echo ($percent >= 100) ? '#16a34a' : (($percent >= 50) ? '#f59e0b' : '#ef4444'); ?>; border-radius: 3px; transition: width 0.3s ease;"></div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width: <?php echo $percent; ?>%; background: <?php echo ($percent >= 100) ? '#10b981' : (($percent >= 50) ? '#f59e0b' : '#ef4444'); ?>;"></div>
                             </div>
-                            <?php if($remaining > 0) { ?>
-                            <div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">Remaining: Rs <?php echo number_format($remaining); ?></div>
-                            <?php } else { ?>
-                            <div style="font-size: 10px; color: #16a34a; font-weight: 600; margin-top: 2px;"><i class="bi bi-check-circle-fill"></i> Full Paid</div>
-                            <?php } ?>
                         </td>
                         <?php endif; ?>
                         <td style="font-weight: 500; color: var(--navy-600);">
@@ -355,13 +418,13 @@ if(isset($_POST['save']))
                                     }
                                 ?>
                                 <!-- Add Partial Payment Button -->
-                                <button type="button" class="action-btn" style="background: #0ea5e9; color: white; border-color: #0ea5e9;" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, <?php echo htmlspecialchars(json_encode($row['client_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($row['service_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo $remaining; ?>, <?php echo htmlspecialchars(json_encode($history_html), ENT_QUOTES, 'UTF-8'); ?>)">
+                                <button type="button" class="action-btn-soft pay" title="Add Payment" onclick="openPaymentModal(<?php echo $row['id']; ?>, <?php echo htmlspecialchars(json_encode($row['client_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($row['service_name']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo $remaining; ?>, <?php echo htmlspecialchars(json_encode($history_html), ENT_QUOTES, 'UTF-8'); ?>)">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                                 <?php } ?>
                                 <?php if($is_due || $is_upcoming) { ?>
                                 <!-- Mark Full Paid Button -->
-                                <a href="renew_retainer.php?id=<?php echo $row['id']; ?>" class="action-btn" style="background: #16a34a; color: white; border-color: #16a34a;" title="Mark Full Paid & Renew" onclick="return confirm('Log payment of Rs <?php echo number_format($remaining); ?> and push billing date to next month?')">
+                                <a href="renew_retainer.php?id=<?php echo $row['id']; ?>" class="action-btn-soft renew" title="Mark Full Paid & Renew" onclick="return confirm('Log payment of Rs <?php echo number_format($remaining); ?> and push billing date to next month?')">
                                     <i class="bi bi-check2-all"></i>
                                 </a>
                                 <?php } ?>
@@ -390,26 +453,25 @@ if(isset($_POST['save']))
                                 <?php 
                                     if(has_permission('can_send_whatsapp')) {
                                 ?>
-                                <a href="<?php echo $wa_link; ?>" target="_blank" class="action-btn" style="background: #25D366; color: white; border-color: #25D366;" title="Send WhatsApp Reminder">
+                                <a href="<?php echo $wa_link; ?>" target="_blank" class="action-btn-soft wa" title="Send WhatsApp Reminder">
                                     <i class="bi bi-whatsapp"></i>
                                 </a>
                                 <?php } ?>
                                 <?php } ?>
                                 <?php if(has_permission('can_invoice_monthly_clients')) { ?>
-                                <a class="action-btn" 
-                                   style="background: #f8fafc; color: #0ea5e9; border-color: #bae6fd;" 
+                                <a class="action-btn-soft inv" 
                                    href="invoice_service.php?id=<?php echo $row['id']; ?>" 
                                    target="_blank" 
                                    title="Generate Invoice">
                                     <i class="bi bi-receipt"></i>
                                 </a>
                                 <?php } ?>
-                                <a class="action-btn edit"
+                                <a class="action-btn-soft edit"
                                    href="edit_retainer.php?id=<?php echo $row['id']; ?>"
                                    title="Edit">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
-                                <a class="action-btn delete"
+                                <a class="action-btn-soft del"
                                    href="delete_retainer.php?id=<?php echo $row['id']; ?>"
                                    title="Delete"
                                    onclick="return confirm('Are you sure you want to delete this client record?')">
