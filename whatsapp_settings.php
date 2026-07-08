@@ -68,7 +68,7 @@ include 'header.php';
 
                     <h5 style="color: var(--navy-800); font-weight: 700;">How to get your Free API Key?</h5>
                     <ol style="margin-top: 10px; font-size: 14px; color: var(--navy-600); line-height: 1.6;">
-                        <li>Add the phone number <strong>+34 621 346 052</strong> to your Phone Contacts. (Name it CallMeBot)</li>
+                        <li>Add the phone number <strong>+34 611 04 87 48</strong> to your Phone Contacts. (Name it CallMeBot)</li>
                         <li>Send this message on WhatsApp to the bot: <br><code style="background: var(--gray-100); padding: 3px 6px; border-radius: 4px; display: inline-block; margin: 5px 0;">I allow callmebot to send me messages</code></li>
                         <li>Wait for the bot to reply. It will reply with your <strong>API Key</strong>.</li>
                         <li>Paste your WhatsApp number and API Key above and Save.</li>
