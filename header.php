@@ -154,6 +154,11 @@ if(file_exists(__DIR__ . '/auth.php')) require_once __DIR__ . '/auth.php';
             <i class="bi bi-shield-lock-fill"></i>
             User Management
         </a>
+        <a href="whatsapp_settings.php"
+           class="sidebar-link <?php echo ($current_page == 'whatsapp_settings.php') ? 'active' : ''; ?>">
+            <i class="bi bi-whatsapp"></i>
+            WhatsApp Auto
+        </a>
         <?php endif; ?>
 
     </nav>
